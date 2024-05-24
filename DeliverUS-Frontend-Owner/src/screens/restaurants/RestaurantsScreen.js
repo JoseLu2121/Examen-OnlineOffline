@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, FlatList, Pressable, View } from 'react-native'
 
-import { getAll, remove } from '../../api/RestaurantEndpoints'
+import { getAll, remove, switchOnOff } from '../../api/RestaurantEndpoints'
 import ImageCard from '../../components/ImageCard'
 import TextSemiBold from '../../components/TextSemibold'
 import TextRegular from '../../components/TextRegular'
@@ -77,6 +77,25 @@ export default function RestaurantsScreen ({ navigation, route }) {
             </TextRegular>
           </View>
         </Pressable>
+        {(item.status === 'online' || item.status === 'offline') &&
+        <Pressable
+            onPress={() => { sw(item.id) }}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed
+                  ? GlobalStyles.brandSuccess
+                  : GlobalStyles.brandSuccessTap
+              },
+              styles.actionButton
+            ]}>
+          <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+            <MaterialCommunityIcons name='chart' color={'white'} size={20}/>
+            <TextRegular textStyle={styles.text}>
+              {item.status}
+            </TextRegular>
+          </View>
+        </Pressable>
+  }
         </View>
       </ImageCard>
     )
@@ -119,7 +138,30 @@ export default function RestaurantsScreen ({ navigation, route }) {
   const fetchRestaurants = async () => {
     try {
       const fetchedRestaurants = await getAll()
+      /* fetchedRestaurants.sort(
+        (a, b) => {
+          if (a.status === b.status) {
+            return a.name.localeCompare(b.name)
+          } else {
+            return b.status.localeCompare(a.status)
+          }
+        }) */
+      //  fetchedRestaurants.sort((a, b) => b.isPromoted - a.isPromoted) para comparar booleans
+      fetchedRestaurants.sort((a, b) => b.status.localeCompare(a.status))
       setRestaurants(fetchedRestaurants)
+    } catch (error) {
+      showMessage({
+        message: `There was an error while retrieving restaurants. ${error} `,
+        type: 'error',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+    }
+  }
+  const sw = async (value) => {
+    try {
+      await switchOnOff(value)
+      fetchRestaurants()
     } catch (error) {
       showMessage({
         message: `There was an error while retrieving restaurants. ${error} `,
@@ -201,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     bottom: 5,
     position: 'absolute',
-    width: '90%'
+    width: '60%'
   },
   text: {
     fontSize: 16,

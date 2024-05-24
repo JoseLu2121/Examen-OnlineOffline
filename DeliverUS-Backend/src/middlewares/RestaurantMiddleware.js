@@ -11,6 +11,7 @@ const checkRestaurantOwnership = async (req, res, next) => {
     return res.status(500).send(err)
   }
 }
+
 const restaurantHasNoOrders = async (req, res, next) => {
   try {
     const numberOfRestaurantOrders = await Order.count({
@@ -24,5 +25,31 @@ const restaurantHasNoOrders = async (req, res, next) => {
     return res.status(500).send(err.message)
   }
 }
+const checkOrders = async (req, res, next) => {
+  /*
+  try {
+    const rest = await Restaurant.findByPk(req.params.restaurantId)
+    for (const order in rest.orders) {
+      if (order.deliveredAt === null) {
+        return res.status(409).send('Some orders belong to this restaurant.')
+      }
+    }
 
-export { checkRestaurantOwnership, restaurantHasNoOrders }
+    return next()
+  } catch (err) {
+    res.status(500).send(err)
+  }
+  */
+  try {
+    const order = await Order.findOne({ where: { restaurantId: req.params.restaurantId, deliveredAt: null } })
+    if (!order) {
+      return next()
+    } else {
+      return res.status(409).send('Orders exists with deliveredAt like null')
+    }
+  } catch (err) {
+    return res.status(500).send(err.message)
+  }
+}
+
+export { checkRestaurantOwnership, restaurantHasNoOrders, checkOrders }

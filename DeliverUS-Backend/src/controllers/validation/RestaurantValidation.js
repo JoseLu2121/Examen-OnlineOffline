@@ -1,6 +1,19 @@
 import { check } from 'express-validator'
 import { checkFileIsImage, checkFileMaxSize } from './FileValidationHelper.js'
+import { Restaurant } from '../../models/models.js'
 const maxFileSize = 2000000 // around 2Mb
+
+const validateClosed = async (req, res, next) => {
+  try {
+    const rest = await Restaurant.findByPk(req.params.restaurantId)
+    if (rest.status === 'online' || rest.status === 'offline') {
+      return next()
+    }
+    return res.status.send('Manolo')
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
 
 const create = [
   check('name').exists().isString().isLength({ min: 1, max: 255 }).trim(),
@@ -51,4 +64,4 @@ const update = [
   }).withMessage('Maximum file size of ' + maxFileSize / 1000000 + 'MB')
 ]
 
-export { create, update }
+export { create, update, validateClosed }

@@ -6,7 +6,7 @@ const maxFileSize = 2000000 // around 2Mb
 
 const checkRestaurantExists = async (value, { req }) => {
   try {
-    const restaurant = await Restaurant.findByPk(req.body.restaurantId)
+    const restaurant = await Restaurant.findByPk(req.param.restaurantId)
     if (restaurant === null) {
       return Promise.reject(new Error('The restaurantId does not exist.'))
     } else { return Promise.resolve() }
